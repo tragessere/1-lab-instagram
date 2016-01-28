@@ -44,7 +44,7 @@ class PhotosViewController: UIViewController {
                 if let data = dataOrNil {
                     if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
                         data, options:[]) as? NSDictionary {
-//                            NSLog("response: \(responseDictionary)")
+                            //                            NSLog("response: \(responseDictionary)")
                             
                             self.instagramData = responseDictionary.valueForKey("data") as? [NSDictionary]
                             self.instagramTableView.reloadData()
@@ -53,71 +53,78 @@ class PhotosViewController: UIViewController {
         });
         task.resume()
     }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let photoDetailView = segue.destinationViewController as! PhotoDetailsViewController
+        let indexPath = instagramTableView.indexPathForCell(sender as! UITableViewCell)
+        let post = instagramData![indexPath!.section]
+        photoDetailView.photoUrl = ((post["images"] as! NSDictionary)["standard_resolution"] as! NSDictionary)["url"] as? String
+    }
 }
 
 extension PhotosViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
-  
+    
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-      if let instagramData = instagramData {
-        return instagramData.count
-      }
-      return 0
+        if let instagramData = instagramData {
+            return instagramData.count
+        }
+        return 0
     }
-  
+    
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = instagramTableView.dequeueReusableCellWithIdentifier("postCell", forIndexPath: indexPath) as! PostCell
         
         let post = instagramData![indexPath.section] as NSDictionary
         let imageUrl = ((post["images"] as! NSDictionary)["standard_resolution"] as! NSDictionary)["url"] as! String
-      
-        let userData = post["user"] as! NSDictionary
-      
-      
-      
-      
+        
+        //        let userData = post["user"] as! NSDictionary
+        
         cell.postImageView.setImageWithURL(NSURL(string: imageUrl)!)
         return cell
     }
-  
-  func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    let headerView = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 50))
-    headerView.backgroundColor = UIColor(white: 1, alpha: 0.9)
     
-    let profileView = UIImageView(frame: CGRect(x: 10, y: 10, width: 30, height: 30))
-    profileView.clipsToBounds = true
-    profileView.layer.cornerRadius = 15
-    profileView.layer.borderColor = UIColor(white: 0.7, alpha: 0.8).CGColor
-    profileView.layer.borderWidth = 1
+    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: 320, height: 50))
+        headerView.backgroundColor = UIColor(white: 1, alpha: 0.9)
+        
+        let profileView = UIImageView(frame: CGRect(x: 10, y: 10, width: 30, height: 30))
+        profileView.clipsToBounds = true
+        profileView.layer.cornerRadius = 15
+        profileView.layer.borderColor = UIColor(white: 0.7, alpha: 0.8).CGColor
+        profileView.layer.borderWidth = 1
+        
+        let usernameLabel = UILabel(frame: CGRect(x: 50, y: 7, width: 200, height: 30))
+        usernameLabel.font = UIFont(name: "System", size: 14.0)
+        
+        let post = instagramData![section] as NSDictionary
+        let userData = post["user"] as! NSDictionary
+        
+        let profilePictureUrl = userData["profile_picture"] as! String
+        let username = userData["username"] as! String
+        
+        //        let profilePictureUrl = userData["profile_picture"] as! String
+        
+        //        cell.usernameLabel.text = username
+        //        cell.profilePictureView.setImageWithURL(NSURL(string: profilePictureUrl)!)
+        
+        profileView.setImageWithURL(NSURL(string: profilePictureUrl)!)
+        usernameLabel.text = username
+        
+        headerView.addSubview(profileView)
+        headerView.addSubview(usernameLabel)
+        
+        return headerView
+    }
     
-    let usernameLabel = UILabel(frame: CGRect(x: 50, y: 10, width: 200, height: 30))
-    usernameLabel.font = UIFont(name: "System", size: 14.0)
+    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 30
+    }
     
-    let post = instagramData![section] as NSDictionary
-    let userData = post["user"] as! NSDictionary
-    
-    let profilePictureUrl = userData["profile_picture"] as! String
-    let username = userData["username"] as! String
-    
-    //        let profilePictureUrl = userData["profile_picture"] as! String
-    
-    //        cell.usernameLabel.text = username
-    //        cell.profilePictureView.setImageWithURL(NSURL(string: profilePictureUrl)!)
-    
-    profileView.setImageWithURL(NSURL(string: profilePictureUrl)!)
-    usernameLabel.text = username
-    
-    headerView.addSubview(profileView)
-    headerView.addSubview(usernameLabel)
-    
-    return headerView
-  }
-  
-  func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-    return 35
-  }
-  
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    }
 }
 
