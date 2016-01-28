@@ -13,12 +13,17 @@ class PhotosViewController: UIViewController {
     
     @IBOutlet weak var instagramTableView: UITableView!
     var instagramData: [NSDictionary]?
-    
+  
+    var loadingMoreView: InfiniteScrollActivityView?
+    var isMoreDataLoading = false
+    var pageNumber = 2
+  
     override func viewDidLoad() {
         super.viewDidLoad()
         
         instagramTableView.delegate = self
         instagramTableView.dataSource = self
+
         
         instagramTableView.rowHeight = 320
         
@@ -62,7 +67,7 @@ class PhotosViewController: UIViewController {
     }
 }
 
-extension PhotosViewController: UITableViewDelegate, UITableViewDataSource {
+extension PhotosViewController: UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
@@ -126,5 +131,48 @@ extension PhotosViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
+  
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+      if !isMoreDataLoading {
+        
+        let scrollViewHeight = scrollView.contentSize.height
+        let scrollOffsetThreshold = scrollViewHeight - scrollView.bounds.size.height
+        
+        if scrollView.contentOffset.y > scrollOffsetThreshold && scrollView.dragging {
+          isMoreDataLoading = true
+          
+          loadMoreData()
+        }
+      }
+    }
+  
+  func loadMoreData() {
+    let session = NSURLSession(
+        configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
+        delegate: nil,
+        delegateQueue: NSOperationQueue.mainQueue())
+    
+    let clientId = "e05c462ebd86446ea48a5af73769b602"
+    let url = NSURL(string:"https://api.instagram.com/v1/media/popular?client_id=\(clientId)&page=\(pageNumber)")
+    let request = NSURLRequest(URL: url!)
+
+    
+    let task: NSURLSessionDataTask = session.dataTaskWithRequest(request,
+      completionHandler: { ( data, response, error) in
+        
+        if let data = data {
+          if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
+            data, options:[]) as? NSDictionary {
+              
+              self.instagramData?.appendContentsOf(responseDictionary.valueForKey("data") as! [NSDictionary])
+              self.instagramTableView.reloadData()
+              
+          }
+        }
+        self.isMoreDataLoading = false
+        self.pageNumber++
+    })
+    task.resume()
+  }
 }
 
