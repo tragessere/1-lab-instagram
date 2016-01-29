@@ -10,4 +10,8 @@ Here's a walkthrough of implemented user stories:
 
 <img src='http://i.imgur.com/xzWEoK4.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
+**Week 2**
+
+<img src='http://i.imgur.com/2lakqAK.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+
 GIF created with [LiceCap](http://www.cockos.com/licecap/).

@@ -23,6 +23,11 @@ class PhotosViewController: UIViewController {
         
         instagramTableView.delegate = self
         instagramTableView.dataSource = self
+      
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
+        instagramTableView.insertSubview(refreshControl, atIndex: 0)
+      
 
         let frame = CGRectMake(0, instagramTableView.contentSize.height, instagramTableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
         loadingMoreView = InfiniteScrollActivityView(frame: frame)
@@ -73,6 +78,33 @@ class PhotosViewController: UIViewController {
         let post = instagramData![indexPath!.section]
         photoDetailView.photoUrl = ((post["images"] as! NSDictionary)["standard_resolution"] as! NSDictionary)["url"] as? String
     }
+  
+    func refreshControlAction(refreshControl: UIRefreshControl) {
+        let session = NSURLSession(
+          configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
+          delegate: nil,
+          delegateQueue: NSOperationQueue.mainQueue()
+        )
+        
+        let clientId = "e05c462ebd86446ea48a5af73769b602"
+        let url = NSURL(string:"https://api.instagram.com/v1/media/popular?client_id=\(clientId)")
+        let request = NSURLRequest(URL: url!)
+        
+        let task: NSURLSessionDataTask = session.dataTaskWithRequest(request,
+          completionHandler: {(data, response, error) in
+            if let data = data {
+                if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
+                        data, options: []) as? NSDictionary {
+                    self.instagramData = responseDictionary.valueForKey("data") as? [NSDictionary]
+                    self.instagramTableView.reloadData()
+                    self.pageNumber = 2
+                          
+                    refreshControl.endRefreshing()
+                }
+            }
+        })
+        task.resume()
+    }
 }
 
 extension PhotosViewController: UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
@@ -89,7 +121,9 @@ extension PhotosViewController: UITableViewDelegate, UITableViewDataSource, UISc
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = instagramTableView.dequeueReusableCellWithIdentifier("postCell", forIndexPath: indexPath) as! PostCell
-        
+      
+        cell.postImageView.image = nil
+      
         let post = instagramData![indexPath.section] as NSDictionary
         let imageUrl = ((post["images"] as! NSDictionary)["standard_resolution"] as! NSDictionary)["url"] as! String
         
