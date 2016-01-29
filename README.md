@@ -12,6 +12,6 @@ Here's a walkthrough of implemented user stories:
 
 **Week 2**
 
-<img src='http://i.imgur.com/2lakqAK.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+![Video Walkthrough](Instagram-2.gif)
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
