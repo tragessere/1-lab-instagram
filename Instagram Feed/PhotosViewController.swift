@@ -24,6 +24,14 @@ class PhotosViewController: UIViewController {
         instagramTableView.delegate = self
         instagramTableView.dataSource = self
 
+        let frame = CGRectMake(0, instagramTableView.contentSize.height, instagramTableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
+        loadingMoreView = InfiniteScrollActivityView(frame: frame)
+        loadingMoreView!.hidden = true
+        instagramTableView.addSubview(loadingMoreView!)
+        
+        var insets = instagramTableView.contentInset;
+        insets.bottom += InfiniteScrollActivityView.defaultHeight;
+        instagramTableView.contentInset = insets
         
         instagramTableView.rowHeight = 320
         
@@ -140,6 +148,11 @@ extension PhotosViewController: UITableViewDelegate, UITableViewDataSource, UISc
         
         if scrollView.contentOffset.y > scrollOffsetThreshold && scrollView.dragging {
           isMoreDataLoading = true
+            
+            // Update position of loadingMoreView, and start loading indicator
+            let frame = CGRectMake(0, instagramTableView.contentSize.height, instagramTableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
+            loadingMoreView?.frame = frame
+            loadingMoreView!.startAnimating()
           
           loadMoreData()
         }
@@ -171,6 +184,8 @@ extension PhotosViewController: UITableViewDelegate, UITableViewDataSource, UISc
         }
         self.isMoreDataLoading = false
         self.pageNumber++
+        // Stop the loading indicator
+        self.loadingMoreView!.stopAnimating()
     })
     task.resume()
   }
